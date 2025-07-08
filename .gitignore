@@ -6,3 +6,5 @@ obj/
 *.vsidx
 *.mdf
 *.ldf
+CompanyService/mssql_data/
+CompanyService/mssql_data/log/
