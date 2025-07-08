@@ -40,7 +40,7 @@ builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// ---------- KESTREL ----------
+// ---------- KESTREL
 builder.WebHost.UseUrls("http://*:80");
 
 var app = builder.Build();
@@ -90,28 +90,4 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         await context.Response.WriteAsync(result);
     }
 });
-
-// ---------- DATABASE MIGRATION ----------
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var retries = 10;
-    while (retries > 0)
-    {
-        try
-        {
-            Console.WriteLine("📦 Veritabanına bağlanılıyor...");
-            dbContext.Database.Migrate();
-            Console.WriteLine("✅ Migration başarılı!");
-            break;
-        }
-        catch (Exception ex)
-        {
-            retries--;
-            Console.WriteLine($"❌ Hata: {ex.Message}. Tekrar denenecek... ({10 - retries}/10)");
-            Thread.Sleep(5000);
-        }
-    }
-}
-
 app.Run();

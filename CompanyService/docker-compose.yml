@@ -1,4 +1,3 @@
-
 services:
   db:
     image: mcr.microsoft.com/mssql/server:2022-latest
@@ -10,8 +9,7 @@ services:
       - "1433:1433"
     volumes:
       - mssql_data:/var/opt/mssql
-      - ./ekofin_backup.mdf:/ekofin/ekofin_backup.mdf      
-      - ./ekofin_backup_0.ldf:/ekofin/ekofin_backup_0.ldf   
+      - /c/Users/emirhanhosanli/ekofinbackup:/var/opt/mssql/ekofinbackup 
     restart: unless-stopped
     healthcheck:
         test: ["CMD", "timeout", "1", "bash", "-c", "</dev/tcp/localhost/1433"]
@@ -30,6 +28,8 @@ services:
       - redis_data:/data
 
   api:
+    build:
+      dockerfile: Dockerfile
     image: companyservice-api:latest
     container_name: testapp_api
     depends_on:

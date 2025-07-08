@@ -27,8 +27,7 @@ namespace CompanyService.Services
         public CompanyService(
             AppDbContext db,
             IRedisService cache,
-            
-            <CompanyService> logger,
+            ILogger<CompanyService> logger,
             IOptions<CacheSettings> options)
         {
             _db = db;
