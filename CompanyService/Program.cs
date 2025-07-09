@@ -7,12 +7,18 @@ using Microsoft.EntityFrameworkCore;
 using HealthChecks.SqlServer;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Prometheus;
+using Fleck;
+using System.Collections.Concurrent;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // ---------- CONFIGURATION ----------
 var config = builder.Configuration;
 var env = builder.Environment.EnvironmentName;
+
+
 
 // Connection strings
 var connectionString = config.GetConnectionString("DefaultConnection")
@@ -39,6 +45,10 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 builder.Services.AddHealthChecks().AddSqlServer(connectionString);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<WebSocketNotifier>();
+
+
 
 // ---------- KESTREL
 builder.WebHost.UseUrls("http://*:80");
@@ -56,15 +66,21 @@ app.UseMetricServer();
 app.UseHttpMetrics();
 
 // API Key middleware
+// API Key middleware
 app.Use(async (context, next) =>
 {
-    var path = context.Request.Path;
-    if (path.StartsWithSegments("/health") || path.StartsWithSegments("/metrics") || path.StartsWithSegments("/swagger"))
+    var path = context.Request.Path.Value;
+
+    // /health ve /swagger için API Key kontrolünü atla
+    if (!string.IsNullOrEmpty(path) &&
+        (path.Contains("health", StringComparison.OrdinalIgnoreCase) ||
+         path.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
     {
         await next();
         return;
     }
 
+    // API Key doðrulamasý
     if (!context.Request.Headers.TryGetValue("X-API-KEY", out var providedKey) || providedKey != apiKey)
     {
         context.Response.StatusCode = 401;
@@ -74,6 +90,7 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
 
 app.UseRouting();
 app.MapControllers();
@@ -90,4 +107,5 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         await context.Response.WriteAsync(result);
     }
 });
+
 app.Run();

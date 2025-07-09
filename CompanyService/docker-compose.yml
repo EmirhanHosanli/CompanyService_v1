@@ -32,6 +32,8 @@ services:
       dockerfile: Dockerfile
     image: companyservice-api:latest
     container_name: testapp_api
+    environment:
+    - ASPNETCORE_ENVIRONMENT=Development
     depends_on:
       db:
         condition: service_healthy
@@ -39,6 +41,7 @@ services:
         condition: service_started
     ports:
       - "5000:80"
+      - "5001:5001"
     restart: unless-stopped
 
 volumes:

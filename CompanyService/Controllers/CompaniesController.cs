@@ -12,11 +12,14 @@
     {
         private readonly AppDbContext _db;
         private readonly IRedisService _redis;
+        private readonly WebSocketNotifier _notifier;
 
-        public CompaniesController(AppDbContext db, IRedisService redis)
+
+        public CompaniesController(AppDbContext db, IRedisService redis, WebSocketNotifier notifier)
         {
             _db = db;
             _redis = redis;
+            _notifier = notifier;
         }
 
         [HttpGet]
@@ -55,6 +58,13 @@
 
             var cacheKey = $"company:{company.Id}";
             await _redis.SetAsync(cacheKey, company);
+            _notifier.NotifyAll(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                type = "company_created",
+                id = company.Id,
+                name = company.Name,
+                sector = company.Sector
+            }));
 
             return CreatedAtAction(nameof(GetCompany), new { id = company.Id }, company);
         }
@@ -73,6 +83,13 @@
 
             var cacheKey = $"company:{id}";
             await _redis.RemoveAsync(cacheKey); // Cache invalidasyonu
+            _notifier.NotifyAll(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                type = "company_updated",
+                id = company.Id,
+                name = company.Name,
+                sector = company.Sector
+            }));
 
             return NoContent();
         }
@@ -88,6 +105,11 @@
 
             var cacheKey = $"company:{id}";
             await _redis.RemoveAsync(cacheKey);
+            _notifier.NotifyAll(System.Text.Json.JsonSerializer.Serialize(new
+            {
+                type = "company_deleted",
+                id = id
+            }));
 
             return NoContent();
         }
