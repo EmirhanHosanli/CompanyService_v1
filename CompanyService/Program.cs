@@ -14,19 +14,17 @@ using System.Collections.Concurrent;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ---------- CONFIGURATION ----------
+
 var config = builder.Configuration;
 var env = builder.Environment.EnvironmentName;
 
 
 
-// Connection strings
 var connectionString = config.GetConnectionString("DefaultConnection")
     ?? "Server=db;Database=CompanyDb;User Id=sa;Password=Your_password123;TrustServerCertificate=True;";
 var redisConnection = config.GetConnectionString("Redis") ?? "redis:6379";
 var apiKey = config["ApiKey"] ?? "SuperSecretApiKey123";
 
-// ---------- SERVICES ----------
 builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -50,12 +48,10 @@ builder.Services.AddSingleton<WebSocketNotifier>();
 
 
 
-// ---------- KESTREL
 builder.WebHost.UseUrls("http://*:80");
 
 var app = builder.Build();
 
-// ---------- MIDDLEWARE ----------
 if (app.Environment.IsDevelopment() || env == "Docker")
 {
     app.UseSwagger();
@@ -65,13 +61,11 @@ if (app.Environment.IsDevelopment() || env == "Docker")
 app.UseMetricServer();
 app.UseHttpMetrics();
 
-// API Key middleware
-// API Key middleware
+
 app.Use(async (context, next) =>
 {
     var path = context.Request.Path.Value;
 
-    // /health ve /swagger için API Key kontrolünü atla
     if (!string.IsNullOrEmpty(path) &&
         (path.Contains("health", StringComparison.OrdinalIgnoreCase) ||
          path.Contains("swagger", StringComparison.OrdinalIgnoreCase)))
@@ -80,7 +74,6 @@ app.Use(async (context, next) =>
         return;
     }
 
-    // API Key doðrulamasý
     if (!context.Request.Headers.TryGetValue("X-API-KEY", out var providedKey) || providedKey != apiKey)
     {
         context.Response.StatusCode = 401;

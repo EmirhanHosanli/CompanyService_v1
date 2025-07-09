@@ -63,7 +63,7 @@ namespace CompanyService.Services
 
         public async Task<Company> CreateCompanyAsync(Company company)
         {
-            // company.LastUpdated = DateTime.UtcNow;  // YOKSA SİL
+           
             await _db.Companies.AddAsync(company);
             await _db.SaveChangesAsync();
 
@@ -81,9 +81,7 @@ namespace CompanyService.Services
             existing.Name = updated.Name;
             existing.Sector = updated.Sector;
             existing.StockName = updated.StockName;
-            // existing.City = updated.City;              // YOKSA SİL
-            // existing.EmployeeCount = updated.EmployeeCount; // YOKSA SİL
-            // existing.LastUpdated = DateTime.UtcNow;    // YOKSA SİL
+   
 
             await _db.SaveChangesAsync();
 
