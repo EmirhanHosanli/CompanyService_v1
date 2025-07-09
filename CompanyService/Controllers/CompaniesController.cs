@@ -82,7 +82,7 @@
             await _db.SaveChangesAsync();
 
             var cacheKey = $"company:{id}";
-            await _redis.RemoveAsync(cacheKey); // Cache invalidasyonu
+            await _redis.RemoveAsync(cacheKey); 
             _notifier.NotifyAll(System.Text.Json.JsonSerializer.Serialize(new
             {
                 type = "company_updated",
